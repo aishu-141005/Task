@@ -1,0 +1,48 @@
+import pandas as pd
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+
+data = pd.read_csv("students.csv")
+
+
+avg_scores = data.mean(numeric_only=True)
+top_student = data.set_index("Name").mean(axis=1).idxmax()
+top_score = data.set_index("Name").mean(axis=1).max()
+
+
+pdf_file = "Student_Report.pdf"
+c = canvas.Canvas(pdf_file, pagesize=letter)
+width, height = letter
+
+
+c.setFont("Helvetica-Bold", 20)
+c.drawString(200, 750, "Student Performance Report")
+
+
+c.setFont("Helvetica", 12)
+c.drawString(50, 700, f"Total Students: {len(data)}")
+c.drawString(50, 680, f"Average Math Score: {avg_scores['Math']:.2f}")
+c.drawString(50, 660, f"Average Science Score: {avg_scores['Science']:.2f}")
+c.drawString(50, 640, f"Average English Score: {avg_scores['English']:.2f}")
+c.drawString(50, 620, f"Top Performer: {top_student} with Average {top_score:.2f}")
+
+
+c.setFont("Helvetica-Bold", 12)
+c.drawString(50, 580, "Name")
+c.drawString(200, 580, "Math")
+c.drawString(300, 580, "Science")
+c.drawString(400, 580, "English")
+
+
+c.setFont("Helvetica", 12)
+y = 560
+for index, row in data.iterrows():
+    c.drawString(50, y, str(row["Name"]))
+    c.drawString(200, y, str(row["Math"]))
+    c.drawString(300, y, str(row["Science"]))
+    c.drawString(400, y, str(row["English"]))
+    y -= 20
+
+
+c.save()
+print("✅ Report generated successfully:", pdf_file)
