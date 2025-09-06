@@ -1,0 +1,57 @@
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import accuracy_score, classification_report
+
+
+data = pd.read_csv("spam.csv", encoding='latin-1')
+
+
+print("Dataset Preview:")
+print(data.head())
+
+
+data = data[['v1', 'v2']]
+data.columns = ['label', 'message']
+
+
+data['label'] = data['label'].map({'ham':0, 'spam':1})
+
+print("\nDataset after preprocessing:")
+print(data.head())
+
+
+X_train, X_test, y_train, y_test = train_test_split(
+    data['message'], data['label'], test_size=0.2, random_state=42)
+
+
+cv = CountVectorizer()
+X_train_cv = cv.fit_transform(X_train)
+X_test_cv = cv.transform(X_test)
+
+
+model = MultinomialNB()
+model.fit(X_train_cv, y_train)
+
+
+y_pred = model.predict(X_test_cv)
+
+
+print("\nModel Accuracy:", accuracy_score(y_test, y_pred))
+print("\nClassification Report:\n", classification_report(y_test, y_pred))
+
+
+test_messages = [
+    "Congratulations! You won a free lottery ticket worth $1000",
+    "Hi friend, let's meet tomorrow for lunch",
+    "Claim your free mobile recharge coupon now!"
+]
+
+test_cv = cv.transform(test_messages)
+predictions = model.predict(test_cv)
+
+print("\nCustom Message Predictions:")
+for msg, label in zip(test_messages, predictions):
+    print(f"Message: {msg} --> {'Spam' if label==1 else 'Ham'}")
